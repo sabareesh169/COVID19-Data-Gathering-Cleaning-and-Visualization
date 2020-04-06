@@ -21,14 +21,20 @@ class CoronaData:
         'CSSEGISandData/COVID-19/master/csse_covid_19_data/'
         'csse_covid_19_time_series/time_series_covid19')):
         self.url_root = urljoin(url_root)
-        
-        # The last update by default is initialized to yesterday to be able to update the data atleast once.
-        self.last_update = date.today() - timedelta(days=1)
+                
+        # Checks if there is any existing file and the last updated time
+        try: 
+            self.corona_dataset = pd.read_csv("corona_combined_dataset.csv")
+            self.last_update = self.corona_dataset['Date'].iloc[-1]
+        except: 
+            self.corona_dataset = pd.DataFrame()
+            # The last update by default is initialized to yesterday to be able to update the data atleast once.
+            self.last_update = date.today() - timedelta(days=1)
         
         # Empty dataframes corresponding to global data and US data
         self.corona_global_dataset = pd.DataFrame()
         self.us_dataset = pd.DataFrame()
-        
+
     def get_data(self, cases_type = 'confirmed', region = 'global'):
         '''
         Args: 
@@ -90,12 +96,6 @@ class CoronaData:
         Args:
             force_update: If True, updates the file irrespective of the last update.
         '''
-        # Checks if there is any existing file and the last updated time
-        try: 
-            self.corona_dataset = pd.read_csv("corona_combined_dataset.csv")
-            self.last_update = self.corona_dataset['Date'].iloc[-1]
-        except: pass
-
         # returns if there is no need to update
         if not force_update and self.last_update == date.today().strftime("%Y-%m-%d"):
             return 
