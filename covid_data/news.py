@@ -29,15 +29,15 @@ class News:
     
     def __init__(self):
         
-        # The last update by default is initialized to yesterday to be able to update the data atleast once.
-        self.last_update = date.today() - timedelta(days=1)
-        
         # Empty dataframe and dictionary to store news
         self.news_dict = []
         try: 
             self.news_df = pd.read_csv("web_scraping.csv")
             self.last_update = self.news_df['date'].iloc[-1]
-        except: self.news_df = pd.DataFrame()
+        except: 
+            self.news_df = pd.DataFrame()
+            # The last update by default is initialized to yesterday to be able to update the data atleast once.
+            self.last_update = date.today() - timedelta(days=1)
     
     def today_news_dict(self):
         '''
@@ -90,13 +90,7 @@ class News:
         Args:
             force_update: If True, updates the file irrespective of the last update.
         '''
-        
-        # Checks if there is any existing file and the last updated time
-        try: 
-            self.news_df = pd.read_csv("web_scraping.csv")
-            self.last_update = self.news_df['date'].iloc[-1]
-        except: pass
-        
+
         # returns if there is no need to update
         if not force_update and self.last_update == date.today().strftime("%Y-%m-%d"):
             return 
