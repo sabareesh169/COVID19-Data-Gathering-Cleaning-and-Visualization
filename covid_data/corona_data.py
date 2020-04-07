@@ -84,7 +84,7 @@ class CoronaData:
         return self.complete_data
     
     def get_specific_data(self, country='All', cases_type = 'confirmed', \
-                          date = self.last_update):
+                          date = 'All'):
         '''
         Returns the data for a certain country on a certain date for certain case type.
         '''
@@ -99,6 +99,9 @@ class CoronaData:
             sp_data = sp_data[sp_data['Country/Region']==country]
         
         if len(sp_data)==0: raise ValueError('Enter a valid country name')
+        
+        if date == 'All':
+            return sp_data
         
         # Get the data for the specific date
         sp_data = sp_data[sp_data['Date']==date]
