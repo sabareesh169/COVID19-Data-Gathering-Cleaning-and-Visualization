@@ -83,6 +83,23 @@ class CoronaData:
         self.complete_data = self._combine_data(data_df_list)
         return self.complete_data
     
+    def get_specific_data(self, country='All', cases_type = 'confirmed', \
+                          date = date.today().strftime("%Y-%m-%d")):
+        sp_data = self.get_data(cases_type = cases_type, region='global')
+
+        if country=='All':
+            pass
+        else:
+            sp_data = sp_data[sp_data['Country/Region']==country]
+        
+        if len(sp_data)==0: raise ValueError('Enter a valid country name')
+            
+        sp_data = sp_data[sp_data['Date']==date]
+        if len(sp_data)==0: raise ValueError('Enter a valid date between 2020-01-22 and {}\
+                                   in the form "YY-MM-DD"'.format(self.last_update))
+        
+        return sp_data
+    
     def update_data(self):
         '''
         gets the complete data without writing it into the csv file.
