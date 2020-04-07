@@ -1,5 +1,7 @@
 # COVID19-Data-Gathering-Cleaning-and-Visualization
 
+https://public.tableau.com/profile/sabareesh.mamidipaka#!/vizhome/COVIDdashboard_15860596712740/Dashboard1?publish=yes
+
 The objective of the program is to get latest information regarding the coronavirus including the data, news and tweets by running the command once.
 
 The 'corona_data.py' contains the CoronaData class which takes data from the Johns Hopkins(https://github.com/CSSEGISandData/COVID-19) data repository. The file takesin data from 5 different files containing the data in the form of train series. This combined data is cleaned and aggregated. Depending on the queries, you can get cases for death, recovered and confirmed either over US or over the entire world. We can also get the details for a select country on a select day for a specific case type.
