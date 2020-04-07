@@ -72,7 +72,7 @@ class TwitterTraffic:
         if not force_update and self.last_update == date.today().strftime("%Y-%m-%d"):
             return 
         
-        self.update_tweets_data(force_update)
+        self.update_tweets_data()
         self.tweets_df.to_csv("tweets.csv", index=False)
         
     def _get_API(self):
