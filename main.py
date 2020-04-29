@@ -37,3 +37,46 @@ corona_data.update_data_csv()
 
 # prints out the data according to the query.
 print(corona_data.get_data(region='US', cases_type= 'deaths'))
+
+# Implementing a chatbot to answer FAQ's and retrieve data
+chat_bot = covid_data.ChatBot()
+
+question1 = 'How does Covid19 spread?'
+chat_bot.reply(question1)
+# Answer
+# 'through respiratory droplets produced when an infected person coughs or sneezes'
+
+question2 = 'Can Covid19 spread from person to person?'
+chat_bot.reply(question2)
+# Answer
+ # the virus that causes covid - 19 is thought to spread mainly from person to person , \
+ # mainly through respiratory droplets produced when an infected person coughs or sneezes.\
+ # these droplets can land in the mouths or noses of people who are nearby or possibly be \
+ # inhaled into the lungs . spread is more likely when people are in close contact with one\
+ # another ( within about 6 feet ) . the number of cases of covid - 19 being reported in \
+ # the united states is rising due to increased laboratory testing and reporting across \
+ # the country . the growing number of cases in part reflects the rapid spread of covid - 19\
+ # as many u . s . states and territories experience community spread . more detailed and \
+ # accurate data will allow us to better understand and track the size and scope of the \
+ # outbreak and strengthen prevention and response efforts . the virus that causes covid - 19\
+ # is spreading from person - to - person
+ 
+question3 = 'Can I donate blood?'
+chat_bot.reply(question3)
+# Answer
+# 'donated blood is a lifesaving , essential part of caring for patients . the need for\
+#  donated blood is constant , and blood centers are open and in urgent need of donations.\
+#  cdc encourages people who are well to continue to donate blood if they are able , even \
+#  if they are practicing social distancing because of covid - 19 . cdc is supporting\
+#  blood centers by providing [SEP]'
+
+question4 = 'Should I wear a mask?'
+chat_bot.reply(question4)
+# Answer
+# 'medical masks and n - 95 respirators are reserved for healthcare workers \
+# and other first responders'
+
+question7 = 'How many cases got confirmed in US yesterday?'
+chat_bot.reply(question7)
+# 	Province/State	Country/Region	 Lat	 Long	        Date	confirmed
+# 25569	NaN	              US	    37.0902	-95.7129	2020-04-27	22412.0

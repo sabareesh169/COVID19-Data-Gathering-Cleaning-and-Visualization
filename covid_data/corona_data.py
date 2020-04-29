@@ -17,7 +17,7 @@ across the world and USA.
 class CoronaData:
     
     def __init__(self, url_root = (
-        'https://raw.github.com/'
+        'https://raw.githubusercontent.com/'
         'CSSEGISandData/COVID-19/master/csse_covid_19_data/'
         'csse_covid_19_time_series/time_series_covid19')):
         self.url_root = urljoin(url_root)
@@ -104,6 +104,7 @@ class CoronaData:
             return sp_data
         
         # Get the data for the specific date
+        sp_data.iloc[:,-1] = sp_data.iloc[:,-1].diff()
         sp_data = sp_data[sp_data['Date']==date]
         if len(sp_data)==0: raise ValueError('Enter a valid date between 2020-01-22 and {}\
                                    in the form "YY-MM-DD"'.format(self.last_update))

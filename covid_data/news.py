@@ -95,6 +95,6 @@ class News:
         if not force_update and self.last_update == date.today().strftime("%Y-%m-%d"):
             return 
         
-        self.update_news_data()
+        self.update_news_data(force_update)
         self.news_df.to_csv("web_scraping.csv", index=False)
         self.last_update = date.today()
