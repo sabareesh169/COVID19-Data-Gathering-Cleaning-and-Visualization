@@ -18,6 +18,8 @@ The 'news.py' file contains the News class which scrapes headlines from three sp
 
 The 'tweets.py' file contains the TwitterTraffic class which collects todays tweets on the coronavirus topic. Additional cleaning,  sentiment analysis and extraction of entities from tweets was performed.
 
+The 'chat_bot.py' file contains the ChatBot class which calls the QuestionClassifier (in question_classifier.py) to classify the question into one of the 15 classes depending on the label value. This label and question is sent to QuestionAnswer if the label is greater than 0 which returns the predicted answer. If the label is 0, then ChatBot queries the data from the table to return  a DataFrame. 
+
 All this data gathered and scraped was used to make the following dashboard:
 https://public.tableau.com/profile/sabareesh.mamidipaka#!/vizhome/COVIDdashboard_15860596712740/Dashboard1?publish=yes
 
