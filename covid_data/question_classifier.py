@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Apr 28 15:12:05 2020
-
 @author: sabareesh
 """
 
@@ -30,12 +28,12 @@ class QuestionClassifier(object):
   def __init__(self):
     '''
       Load a pretrained tokenizer from Bert.
-
+      All the faqs are scraped from the cdc website.
       Returns
       -------
       None.
 
-      '''
+    '''
     self.tokenizer = BertTokenizer.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
     self.url = 'https://www.cdc.gov/coronavirus/2019-ncov/faq.html'
     self.format = 'html.parser'
@@ -54,7 +52,7 @@ class QuestionClassifier(object):
       questions_list : list
           list of questions with a label attached to them (0 in this case).
 
-      '''
+    '''
     fabricated_questions = ['what are the number of cases in US yesterday?', \
                             'How many confirmed cases were recorded over the entire world yesterday?',\
                             'What are the number of deaths in China on 24th January?',\
@@ -84,11 +82,17 @@ class QuestionClassifier(object):
     label = 0
     questions_list = []
     # Extract questions from the website
+    # Go through all the tags, if you find the 'h3' tag, then a new set of 
+    # questoins have started, so start a new label.
     for tag in soup.find_all():
       if tag.name=='h3':
         label+=1
+    
+      # If the tag is span and text xontains '?', then add the text as question.
       if tag.name=='span' and '?' in tag.text:
         questions_list.append([tag.text, label]) 
+        
+    # Augment the data with the training set for stats query questions
     questions_list = self.attach_additional_questions(questions_list)
     return questions_list
 
@@ -99,7 +103,7 @@ class QuestionClassifier(object):
       Returns
       -------
       answers_list : list
-      '''
+    '''
     response = requests.get(self.url)
     soup = BeautifulSoup(response.content, self.format)
     answer_text = ' '
@@ -108,15 +112,21 @@ class QuestionClassifier(object):
     next_answer = False
     # Extract questions from the website
     for tag in soup.find_all():
+    
+      # Everytime you encounter new category, join the answer text and label
       if tag.name=='h3':
         answers_list.append([answer_text, label])
         answer_text = ''
         label+=1
+        
+      # Collect only 1 paragraph answer to keep the answer tkens to less than 512
       if tag.name=='span' and '?' in tag.text:
         next_answer = True
       if tag.name=='p' and len(tag.text.split(" ")) > 4 and next_answer==True:
         answer_text+=' '+str(unicodedata.normalize('NFKD',tag.text))
         next_answer = False
+        
+      # tag 'h4' correponds to footnotes
       if tag.name=='h4':
         break
     answers_list.append([answer_text, label])
@@ -182,7 +192,7 @@ class QuestionClassifier(object):
 
     self.model = BertForSequenceClassification.from_pretrained(
     'bert-large-uncased-whole-word-masking-finetuned-squad', 
-    num_labels = 15, 
+    num_labels = 16, 
     output_attentions = False, output_hidden_states = False)
     self.perform_training(train_dataloader)
 
@@ -197,13 +207,11 @@ class QuestionClassifier(object):
 
     '''
     epochs = 12
-    optimizer = AdamW(self.model.parameters(), lr = 2e-5)
+    optimizer = AdamW(self.model.parameters(), lr = 3e-5)
 
     for epoch_i in range(0, epochs):
 
-      print("")
-      print('======== Epoch {:} / {:} ========'.format(epoch_i + 1, epochs))
-      print('Training...')
+      print('Training Epoch {:} / {:}'.format(epoch_i + 1, epochs))
       self.model.train()
 
       # Reset the total loss for this epoch.
@@ -213,20 +221,18 @@ class QuestionClassifier(object):
       for step, batch in enumerate(train_dataloader):
 
         self.model.zero_grad()        
-
         outputs = self.model(batch[0], 
                     token_type_ids=None, 
                     attention_mask=batch[1], 
                     labels=batch[2])
         
         loss = outputs[0]
-
         total_loss += loss.item()
 
         # Perform a backward pass to calculate the gradients.
         loss.backward()
 
-        # Make sure to clip the norm of the gradients to 1.0 to avoid explosion of gradients
+        #Clipping gradients to 1.0 to avoid explosion of gradients
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
 
         # Update parameters 
@@ -252,18 +258,23 @@ class QuestionClassifier(object):
       -------
       Predicted class label.
     '''
+    # Check if the model exists already, if not try to load or train
     try:
       self.model
     except:
+      # Try to load the model
       try:
         self.model = BertForSequenceClassification.from_pretrained('./model/')
         self.tokenizer = BertTokenizer.from_pretrained('./model/')
+      # or load and train the model
       except:
         self.fit()
 
+    # forward pass only
     self.model.eval()
 
     inputs = self.tokenizer.encode(query, max_length=20, pad_to_max_length=True)
+    # specify the padding if any
     masks = [int(token_id > 0) for token_id in inputs]
 
     with torch.no_grad():        
@@ -272,4 +283,6 @@ class QuestionClassifier(object):
                         attention_mask=torch.tensor([masks]))
         
     logits = outputs[0]
+    
+    # Reurn the most probable class
     return np.argmax(logits.numpy(), axis=1).flatten()
