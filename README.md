@@ -1,4 +1,4 @@
-# COVID19-Data-Gathering-Cleaning-and-Visualization
+# COVID19 Data Mining Visualization and ChatBot
 
 https://public.tableau.com/profile/sabareesh.mamidipaka#!/vizhome/COVIDdashboard_15860596712740/Dashboard1?publish=yes
 
