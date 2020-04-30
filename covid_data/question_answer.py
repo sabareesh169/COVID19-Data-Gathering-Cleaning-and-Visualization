@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Apr 28 15:40:52 2020
-
 @author: sabareesh
 """
 
@@ -22,9 +20,9 @@ class QuestionAnswer(object):
       question_classifier : Class instance
           required to know the informatino corresponding to the label.
       
-      Downloads the pretrained BERT model and encoder.
+      Loads the pretrained BERT model and encoder.
     '''
-    self.model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
+    self.qa_model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
     self.answers_df = question_classifier.answers_df
     self.tokenizer = BertTokenizer.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
 
@@ -48,16 +46,14 @@ class QuestionAnswer(object):
     self.tokens = self.tokenizer.convert_ids_to_tokens(input_ids)
 
     # Search the input_ids for the first instance of the `[SEP]` token.
-    sep_index = input_ids.index(self.tokenizer.sep_token_id)
-
-    # The number of segment A tokens includes the [SEP] token istelf.
-    num_seg_a = sep_index + 1
+    sep_id = input_ids.index(self.tokenizer.sep_token_id)
 
     # The remainder are segment B.
-    num_seg_b = len(input_ids) - num_seg_a
+    num_quest_id = sep_id + 1
+    num_ans_id = len(input_ids) - num_quest_id
 
-    # Construct the list of 0s and 1s.
-    segment_ids = [0]*num_seg_a + [1]*num_seg_b
+    # Construct the list of 0s and 1s seperating question and answer text.
+    segment_ids = [0]*num_quest_id + [1]*num_ans_id
     return input_ids, segment_ids
 
   def answer_query(self, query:str, label:int):
@@ -76,10 +72,14 @@ class QuestionAnswer(object):
 
       '''
     input_ids, segment_ids = self.tokenize(query, label)
-    start_scores, end_scores = self.model(torch.tensor([input_ids]), # The tokens representing our input text.
+    
+    # Calculate the probability of being a start and end token for each word
+    start_token_scores, end_token_scores = self.qa_model(torch.tensor([input_ids]), 
                                   token_type_ids=torch.tensor([segment_ids]))
-    start_token = torch.argmax(start_scores)
-    end_token = torch.argmax(end_scores)
+    
+    # Most probable start and end token
+    start_token = torch.argmax(start_token_scores)
+    end_token = torch.argmax(end_token_scores)
     answer = self.get_answer(start_token, end_token)
     return answer
 
@@ -100,14 +100,13 @@ class QuestionAnswer(object):
     # Start with the first token.
     answer = self.tokens[start_token]
 
-    # Select the remaining answer tokens and join them with whitespace.
+    # Join the tokens to make a sentence.
+    # Bert tokenizes in such a way that sometimes a word can be
+    # broken down to form two words. Fo example, 'Coronavirus' is broken down to 
+    # 'corona' and '##virus'. So, we join these instances as one word.
     for i in range(start_token + 1, end_token + 1):
-        
-        # If it's a subword token, then recombine it with the previous token.
         if self.tokens[i][0:2] == '##':
             answer += self.tokens[i][2:]
-        
-        # Otherwise, add a space then the token.
         else:
             answer += ' ' + self.tokens[i]
     return answer
